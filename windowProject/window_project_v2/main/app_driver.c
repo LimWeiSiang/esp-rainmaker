@@ -35,38 +35,38 @@
 
 static bool g_power_state = DEFAULT_SWITCH_POWER;
 static float g_temperature = DEFAULT_TEMPERATURE;
-static TimerHandle_t sensor_timer;
+// static TimerHandle_t sensor_timer;
 
-static void app_sensor_update(TimerHandle_t handle)
-{
-    static float delta = 0.5;
-    g_temperature += delta;
-    if (g_temperature > 99) {
-        delta = -0.5;
-    } else if (g_temperature < 1) {
-        delta = 0.5;
-    }
-    esp_rmaker_param_update_and_report(
-                esp_rmaker_device_get_param_by_type(temp_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
-                esp_rmaker_float(g_temperature));
-}
+// static void app_sensor_update(TimerHandle_t handle)
+// {
+//     static float delta = 0.5;
+//     g_temperature += delta;
+//     if (g_temperature > 99) {
+//         delta = -0.5;
+//     } else if (g_temperature < 1) {
+//         delta = 0.5;
+//     }
+//     esp_rmaker_param_update_and_report(
+//                 esp_rmaker_device_get_param_by_type(temp_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
+//                 esp_rmaker_float(g_temperature));
+// }
 
-float app_get_current_temperature()
-{
-    return g_temperature;
-}
+// float app_get_current_temperature()
+// {
+//     return g_temperature;
+// }
 
-esp_err_t app_sensor_init(void)
-{
-    g_temperature = DEFAULT_TEMPERATURE;
-    sensor_timer = xTimerCreate("app_sensor_update_tm", (REPORTING_PERIOD * 1000) / portTICK_PERIOD_MS,
-                            pdTRUE, NULL, app_sensor_update);
-    if (sensor_timer) {
-        xTimerStart(sensor_timer, 0);
-        return ESP_OK;
-    }
-    return ESP_FAIL;
-}
+// esp_err_t app_sensor_init(void)
+// {
+//     g_temperature = DEFAULT_TEMPERATURE;
+//     sensor_timer = xTimerCreate("app_sensor_update_tm", (REPORTING_PERIOD * 1000) / portTICK_PERIOD_MS,
+//                             pdTRUE, NULL, app_sensor_update);
+//     if (sensor_timer) {
+//         xTimerStart(sensor_timer, 0);
+//         return ESP_OK;
+//     }
+//     return ESP_FAIL;
+// }
 
 static void app_indicator_set(bool state)
 {
@@ -117,7 +117,7 @@ void app_driver_init()
     /* Configure the GPIO */
     gpio_config(&io_conf);
     app_indicator_init();
-    app_sensor_init();
+    // app_sensor_init();
 }
 
 int IRAM_ATTR app_driver_set_state(bool state)

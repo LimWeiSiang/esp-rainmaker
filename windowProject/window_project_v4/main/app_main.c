@@ -28,7 +28,7 @@ static const char *TAG = "app_main";
 
 esp_rmaker_device_t *switch_device;
 esp_rmaker_device_t *light_device;
-// esp_rmaker_device_t *fan_device;
+esp_rmaker_device_t *fan_device;
 esp_rmaker_device_t *temp_sensor_device;
 
 /* Callback to handle commands received from the RainMaker cloud */
@@ -111,10 +111,10 @@ void app_main()
     esp_rmaker_node_add_device(node, light_device);
     
     /* Create a Fan device and add the relevant parameters to it */
-    // fan_device = esp_rmaker_fan_device_create("Fan", NULL, DEFAULT_FAN_POWER);
-    // esp_rmaker_device_add_cb(fan_device, write_cb, NULL);
-    // esp_rmaker_device_add_param(fan_device, esp_rmaker_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, DEFAULT_FAN_SPEED));
-    // esp_rmaker_node_add_device(node, fan_device);
+    fan_device = esp_rmaker_fan_device_create("Fan", NULL, DEFAULT_FAN_POWER);
+    esp_rmaker_device_add_cb(fan_device, write_cb, NULL);
+    esp_rmaker_device_add_param(fan_device, esp_rmaker_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, DEFAULT_FAN_SPEED));
+    esp_rmaker_node_add_device(node, fan_device);
     
     /* Create a Temperature Sensor device and add the relevant parameters to it */
     temp_sensor_device = esp_rmaker_temp_sensor_device_create("Temperature Sensor", NULL, app_get_current_temperature());

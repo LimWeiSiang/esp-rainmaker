@@ -82,7 +82,7 @@ bool app_get_current_rain_sensor()
 static void rain_sensor_event(void *arg)
 {
     bool new_rain_sensor_state = !rain_sensor_state;
-    app_driver_set_state_rain_sensor(new_rain_sensor_state);
+    app_driver_set_state(new_rain_sensor_state);
     esp_rmaker_param_update_and_report(
                 esp_rmaker_device_get_param_by_type(rain_sensor_device, ESP_RMAKER_PARAM_POWER),
                 esp_rmaker_bool(new_rain_sensor_state));

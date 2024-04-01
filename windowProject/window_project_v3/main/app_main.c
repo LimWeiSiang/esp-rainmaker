@@ -27,7 +27,7 @@
 static const char *TAG = "app_main";
 
 esp_rmaker_device_t *switch_device;
-esp_rmaker_device_t *light_device;
+// esp_rmaker_device_t *light_device;
 // esp_rmaker_device_t *fan_device;
 esp_rmaker_device_t *temp_sensor_device;
 
@@ -99,16 +99,16 @@ void app_main()
     esp_rmaker_node_add_device(node, switch_device);
 
     /* Create a Light device and add the relevant parameters to it */
-    light_device = esp_rmaker_lightbulb_device_create("Light", NULL, DEFAULT_LIGHT_POWER);
-    esp_rmaker_device_add_cb(light_device, write_cb, NULL);
+    // light_device = esp_rmaker_lightbulb_device_create("Light", NULL, DEFAULT_LIGHT_POWER);
+    // esp_rmaker_device_add_cb(light_device, write_cb, NULL);
     
-    esp_rmaker_device_add_param(light_device,
-            esp_rmaker_brightness_param_create(ESP_RMAKER_DEF_BRIGHTNESS_NAME, DEFAULT_LIGHT_BRIGHTNESS));
+    // esp_rmaker_device_add_param(light_device,
+    //         esp_rmaker_brightness_param_create(ESP_RMAKER_DEF_BRIGHTNESS_NAME, DEFAULT_LIGHT_BRIGHTNESS));
     
-    esp_rmaker_device_add_attribute(light_device, "Serial Number", "012345");
-    esp_rmaker_device_add_attribute(light_device, "MAC", "xx:yy:zz:aa:bb:cc");
+    // esp_rmaker_device_add_attribute(light_device, "Serial Number", "012345");
+    // esp_rmaker_device_add_attribute(light_device, "MAC", "xx:yy:zz:aa:bb:cc");
 
-    esp_rmaker_node_add_device(node, light_device);
+    // esp_rmaker_node_add_device(node, light_device);
     
     /* Create a Fan device and add the relevant parameters to it */
     // fan_device = esp_rmaker_fan_device_create("Fan", NULL, DEFAULT_FAN_POWER);

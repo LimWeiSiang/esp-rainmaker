@@ -18,9 +18,11 @@
 #define REPORTING_PERIOD            60 /* Seconds */
 
 extern esp_rmaker_device_t *switch_device;
-extern esp_rmaker_device_t *light__device;
-extern esp_rmaker_device_t *fan_device;
-extern esp_rmaker_device_t *temp_sensor_device;
+// extern esp_rmaker_device_t *light__device;
+// extern esp_rmaker_device_t *fan_device;
+// extern esp_rmaker_device_t *temp_sensor_device;
+
+
 
 void app_driver_init(void);
 int app_driver_set_state(bool state);

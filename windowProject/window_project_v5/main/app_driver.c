@@ -20,7 +20,10 @@
 #include "app_priv.h"
 
 
+////------------Rain Sensor---------------////
+#include "driver/gpio.h"
 
+////------------Rain Sensor---------------////
 
 /* This is the button that is used for toggling the power */
 #define BUTTON_GPIO          CONFIG_EXAMPLE_BOARD_BUTTON_GPIO
@@ -38,7 +41,7 @@
 
 // ////------------Rain Sensor---------------////
 
-#define RAIN_SENSOR_PIN     CONFIG_GPIO_INPUT_0
+#define RAIN_SENSOR_PIN     22
 
 // #define ESP_INTR_FLAG_DEFAULT 0
 // ////------------Rain Sensor---------------////
@@ -60,7 +63,7 @@ static bool rain_sensor_state = DEFAULT_RAIN_SENSOR;
 
 
 // static float g_temperature = DEFAULT_TEMPERATURE;
-// static TimerHandle_t sensor_timer;
+static TimerHandle_t sensor_timer;
 
 // static void app_sensor_update(TimerHandle_t handle)
 // {
@@ -81,12 +84,24 @@ static bool rain_sensor_state = DEFAULT_RAIN_SENSOR;
 //     return g_temperature;
 // }
 
+
+//------------Rain Sensor---------------//
+
+static void app_rain_sensor_update(TimerHandle_t handle)
+{
+    rain_sensor_state = (bool) gpio_get_level(RAIN_SENSOR_PIN);
+    esp_rmaker_param_update_and_report(
+                esp_rmaker_device_get_param_by_type(rain_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
+                esp_rmaker_float(rain_sensor_state));
+}
+//------------Rain Sensor---------------//
+
 //------------Rain Sensor---------------//
 bool app_get_current_rain_sensor()
 {
-    bool rain_sensor_input = (bool) gpio_get_level(RAIN_SENSOR_PIN);
+    // bool rain_sensor_input = (bool) gpio_get_level(RAIN_SENSOR_PIN);
     // return g_temperature;
-    return rain_sensor_input;//temp line to be changed
+    return rain_sensor_state;//temp line to be changed
 }
 //------------Rain Sensor---------------//
 
@@ -109,17 +124,17 @@ bool app_get_current_rain_sensor()
 
 //------------Rain Sensor---------------//
 
-// esp_err_t app_sensor_init(void)
-// {
-//     rain_sensor_state = DEFAULT_RAIN_SENSOR;
-//     sensor_timer = xTimerCreate("app_sensor_update_tm", (REPORTING_PERIOD * 1000) / portTICK_PERIOD_MS,
-//                             pdTRUE, NULL, app_sensor_update);
-//     if (sensor_timer) {
-//         xTimerStart(sensor_timer, 0);
-//         return ESP_OK;
-//     }
-//     return ESP_FAIL;
-// }
+esp_err_t app_sensor_init(void)
+{
+    rain_sensor_state = DEFAULT_RAIN_SENSOR;
+    sensor_timer = xTimerCreate("app_sensor_update_rs", (REPORTING_PERIOD * 1000) / portTICK_PERIOD_MS,
+                            pdTRUE, NULL, app_rain_sensor_update);
+    if (sensor_timer) {
+        xTimerStart(sensor_timer, 0);
+        return ESP_OK;
+    }
+    return ESP_FAIL;
+}
 
 //------------Rain Sensor---------------//
 
@@ -186,7 +201,7 @@ void app_driver_init()
     /* Configure the GPIO */
     gpio_config(&io_conf);
     app_indicator_init();
-    // app_sensor_init();
+    app_sensor_init();
 
 
 

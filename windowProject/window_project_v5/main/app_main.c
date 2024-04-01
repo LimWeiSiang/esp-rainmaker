@@ -128,6 +128,7 @@ void app_main()
 
     //-----------Create Rain Sensor Device--------------//
     rain_sensor_device = esp_rmaker_temp_sensor_device_create("Rain Sensor", NULL, app_get_current_rain_sensor());
+    ESP_LOGE(TAG, "Create Rain Sensor Device!!!!!");
     // rain_sensor_device = esp_rmaker_temp_sensor_device_create("Rain Sensor", NULL, true);
     esp_rmaker_node_add_device(node, rain_sensor_device);
     //-----------Create Rain Sensor Device--------------//

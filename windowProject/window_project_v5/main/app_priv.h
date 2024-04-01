@@ -16,6 +16,7 @@
 // #define DEFAULT_FAN_SPEED           3
 // #define DEFAULT_TEMPERATURE         25.0
 // #define REPORTING_PERIOD            60 /* Seconds */
+#define REPORTING_PERIOD            1 /* Seconds */
 
 
 //------------Rain Sensor---------------//

@@ -14,17 +14,24 @@
 #define DEFAULT_LIGHT_BRIGHTNESS    25
 #define DEFAULT_FAN_POWER           false
 #define DEFAULT_FAN_SPEED           3
-#define DEFAULT_TEMPERATURE         25.0
+// #define DEFAULT_TEMPERATURE         25.0
 #define REPORTING_PERIOD            60 /* Seconds */
+
+
+//------------Rain Sensor---------------//
+#define DEFAULT_RAIN_SENSOR false
+//------------Rain Sensor---------------//
+
 
 extern esp_rmaker_device_t *switch_device;
 // extern esp_rmaker_device_t *light__device;
 // extern esp_rmaker_device_t *fan_device;
 // extern esp_rmaker_device_t *temp_sensor_device;
-
+extern esp_rmaker_device_t *rain_sensor_device;
 
 
 void app_driver_init(void);
 int app_driver_set_state(bool state);
 bool app_driver_get_state(void);
-float app_get_current_temperature();
+// float app_get_current_temperature();
+bool app_get_current_rain_sensor();

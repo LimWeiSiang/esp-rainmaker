@@ -29,7 +29,9 @@ static const char *TAG = "app_main";
 esp_rmaker_device_t *switch_device;
 // esp_rmaker_device_t *light_device;
 // esp_rmaker_device_t *fan_device;
-esp_rmaker_device_t *temp_sensor_device;
+// esp_rmaker_device_t *temp_sensor_device;
+esp_rmaker_device_t *rain_sensor_device;
+// esp_rmaker_device_t *rain_sensor_device_test;
 
 /* Callback to handle commands received from the RainMaker cloud */
 static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
@@ -86,7 +88,7 @@ void app_main()
     esp_rmaker_config_t rainmaker_cfg = {
         .enable_time_sync = false,
     };
-    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Multi Device", "Multi Device");
+    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "Window And Rain Sensor Project", "Multi Device");
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);
@@ -117,8 +119,14 @@ void app_main()
     // esp_rmaker_node_add_device(node, fan_device);
     
     /* Create a Temperature Sensor device and add the relevant parameters to it */
-    temp_sensor_device = esp_rmaker_temp_sensor_device_create("Temperature Sensor", NULL, app_get_current_temperature());
-    esp_rmaker_node_add_device(node, temp_sensor_device);
+    // temp_sensor_device = esp_rmaker_temp_sensor_device_create("Temperature Sensor", NULL, app_get_current_temperature());
+    // esp_rmaker_node_add_device(node, temp_sensor_device);
+
+    //-----------Create Rain Sensor Device--------------//
+    // rain_sensor_device = esp_rmaker_temp_sensor_device_create("Rain Sensor", NULL, app_get_current_rain_sensor());
+    rain_sensor_device = esp_rmaker_temp_sensor_device_create("Rain Sensor", NULL, true);
+    esp_rmaker_node_add_device(node, rain_sensor_device);
+    //-----------Create Rain Sensor Device--------------//
 
     /* Enable OTA */
     esp_rmaker_ota_enable_default();

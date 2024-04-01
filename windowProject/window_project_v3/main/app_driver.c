@@ -33,16 +33,40 @@
 #define WIFI_RESET_BUTTON_TIMEOUT       3
 #define FACTORY_RESET_BUTTON_TIMEOUT    10
 
-
-//--------rainsensor-------//
-#define RAIN_SENSOR 22
-#define DEFAULT_RAIN_SENSOR false
-static bool rain_sensor_state = DEFAULT_RAIN_SENSOR;
-//-------rainsensor--------//
-
 static bool g_power_state = DEFAULT_SWITCH_POWER;
+static float g_temperature = DEFAULT_TEMPERATURE;
+static TimerHandle_t sensor_timer;
 
+static void app_sensor_update(TimerHandle_t handle)
+{
+    static float delta = 0.5;
+    g_temperature += delta;
+    if (g_temperature > 99) {
+        delta = -0.5;
+    } else if (g_temperature < 1) {
+        delta = 0.5;
+    }
+    esp_rmaker_param_update_and_report(
+                esp_rmaker_device_get_param_by_type(temp_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
+                esp_rmaker_float(g_temperature));
+}
 
+float app_get_current_temperature()
+{
+    return g_temperature;
+}
+
+esp_err_t app_sensor_init(void)
+{
+    g_temperature = DEFAULT_TEMPERATURE;
+    sensor_timer = xTimerCreate("app_sensor_update_tm", (REPORTING_PERIOD * 1000) / portTICK_PERIOD_MS,
+                            pdTRUE, NULL, app_sensor_update);
+    if (sensor_timer) {
+        xTimerStart(sensor_timer, 0);
+        return ESP_OK;
+    }
+    return ESP_FAIL;
+}
 
 static void app_indicator_set(bool state)
 {
@@ -93,32 +117,8 @@ void app_driver_init()
     /* Configure the GPIO */
     gpio_config(&io_conf);
     app_indicator_init();
-    // app_sensor_init();
-
-
-
-    //------rainsensor-----//
-    button_handle_t rainSensorState = iot_button_create(RAIN_SENSOR, BUTTON_ACTIVE_LEVEL);
-    if(rainSensorState==false)
-    {
-        iot_button_set_evt_cb(rainSensorState, BUTTON_CB_TAP, push_btn_cb, NULL);
-
-    }
-    //------rainsensor-----//
-
+    app_sensor_init();
 }
-
-// //------rainsensor-----//
-// static void rainSensorEvent(void *arg)
-// {
-//     bool rainSensorState = !rainSensorState;
-//     app_driver_set_state(rainSensorState);
-//     esp_rmaker_param_update_and_report(
-//                 esp_rmaker_device_get_param_by_type(switch_device, ESP_RMAKER_PARAM_POWER),
-//                 esp_rmaker_bool(rainSensorState));
-// }
-// //------rainsensor-----//
-
 
 int IRAM_ATTR app_driver_set_state(bool state)
 {

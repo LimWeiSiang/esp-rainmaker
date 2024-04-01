@@ -27,8 +27,9 @@
 static const char *TAG = "app_main";
 
 esp_rmaker_device_t *switch_device;
-esp_rmaker_device_t *rain_sensor_device;
-
+esp_rmaker_device_t *light_device;
+// esp_rmaker_device_t *fan_device;
+esp_rmaker_device_t *temp_sensor_device;
 
 /* Callback to handle commands received from the RainMaker cloud */
 static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
@@ -42,7 +43,7 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
     if (strcmp(param_name, ESP_RMAKER_DEF_POWER_NAME) == 0) {
         ESP_LOGI(TAG, "Received value = %s for %s - %s",
                 val.val.b? "true" : "false", device_name, param_name);
-        if (strcmp(device_name, "Window") == 0) {
+        if (strcmp(device_name, "Switch") == 0) {
             app_driver_set_state(val.val.b);
         }
     } else if (strcmp(param_name, ESP_RMAKER_DEF_BRIGHTNESS_NAME) == 0) {
@@ -85,7 +86,7 @@ void app_main()
     esp_rmaker_config_t rainmaker_cfg = {
         .enable_time_sync = false,
     };
-    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Multi Device v2", "Multi Device"); //edit name here
+    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Multi Device", "Multi Device");
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);
@@ -93,11 +94,33 @@ void app_main()
     }
 
     /* Create a Switch device and add the relevant parameters to it */
-    switch_device = esp_rmaker_switch_device_create("Window", NULL, DEFAULT_SWITCH_POWER);
+    switch_device = esp_rmaker_switch_device_create("Switch", NULL, DEFAULT_SWITCH_POWER);
     esp_rmaker_device_add_cb(switch_device, write_cb, NULL);
     esp_rmaker_node_add_device(node, switch_device);
 
+    /* Create a Light device and add the relevant parameters to it */
+    light_device = esp_rmaker_lightbulb_device_create("Light", NULL, DEFAULT_LIGHT_POWER);
+    esp_rmaker_device_add_cb(light_device, write_cb, NULL);
+    
+    esp_rmaker_device_add_param(light_device,
+            esp_rmaker_brightness_param_create(ESP_RMAKER_DEF_BRIGHTNESS_NAME, DEFAULT_LIGHT_BRIGHTNESS));
+    
+    esp_rmaker_device_add_attribute(light_device, "Serial Number", "012345");
+    esp_rmaker_device_add_attribute(light_device, "MAC", "xx:yy:zz:aa:bb:cc");
 
+    esp_rmaker_node_add_device(node, light_device);
+    
+    /* Create a Fan device and add the relevant parameters to it */
+    // fan_device = esp_rmaker_fan_device_create("Fan", NULL, DEFAULT_FAN_POWER);
+    // esp_rmaker_device_add_cb(fan_device, write_cb, NULL);
+    // esp_rmaker_device_add_param(fan_device, esp_rmaker_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, DEFAULT_FAN_SPEED));
+    // esp_rmaker_node_add_device(node, fan_device);
+    
+    /* Create a Temperature Sensor device and add the relevant parameters to it */
+    temp_sensor_device = esp_rmaker_temp_sensor_device_create("Temperature Sensor", NULL, app_get_current_temperature());
+    esp_rmaker_node_add_device(node, temp_sensor_device);
+
+    /* Enable OTA */
     esp_rmaker_ota_enable_default();
 
     /* Enable timezone service which will be require for setting appropriate timezone

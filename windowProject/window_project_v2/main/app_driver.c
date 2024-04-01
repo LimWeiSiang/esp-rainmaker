@@ -19,21 +19,11 @@
 #include <ws2812_led.h>
 #include "app_priv.h"
 
-//------LED-----//
-#include <string.h>
-#include <esp_log.h>
-//-----LED-----//
-
 /* This is the button that is used for toggling the power */
 #define BUTTON_GPIO          CONFIG_EXAMPLE_BOARD_BUTTON_GPIO
 #define BUTTON_ACTIVE_LEVEL  0
 /* This is the GPIO on which the power will be set */
 #define OUTPUT_GPIO    CONFIG_EXAMPLE_OUTPUT_GPIO
-
-//-------define GPIO 2 as red led gpio-------//
-#define OUTPUT_GPIO_RED   CONFIG_EXAMPLE_OUTPUT_GPIO_RED
-//-------define GPIO 2 as red led gpio-------//
-
 
 /* These values correspoind to H,S,V = 120,100,10 */
 #define DEFAULT_RED     0
@@ -43,29 +33,9 @@
 #define WIFI_RESET_BUTTON_TIMEOUT       3
 #define FACTORY_RESET_BUTTON_TIMEOUT    10
 
-
 static bool g_power_state = DEFAULT_SWITCH_POWER;
 static float g_temperature = DEFAULT_TEMPERATURE;
 static TimerHandle_t sensor_timer;
-
-
-//-------GPIO output red led--------//
-esp_err_t app_driver_set_gpio(const char *name, bool state)
-{
-    if (strcmp(name, "Red") == 0) 
-    {
-        gpio_set_level(OUTPUT_GPIO_RED, state);
-    }
-    else 
-    {
-        return ESP_FAIL;
-    }
-    return ESP_OK;
-}
-//-------GPIO output red led--------//
-
-
-
 
 static void app_sensor_update(TimerHandle_t handle)
 {
@@ -148,15 +118,6 @@ void app_driver_init()
     gpio_config(&io_conf);
     app_indicator_init();
     app_sensor_init();
-
-    uint64_t pin_mask = (uint64_t)1 << OUTPUT_GPIO_RED ;
-    io_conf.pin_bit_mask = pin_mask;
-
-    //--------RED LED----------//
-
-    gpio_set_level(OUTPUT_GPIO_RED, false);
-    //--------RED LED----------//
-    
 }
 
 int IRAM_ATTR app_driver_set_state(bool state)

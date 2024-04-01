@@ -8,7 +8,6 @@
 #pragma once
 #include <stdint.h>
 #include <stdbool.h>
-#include <esp_err.h>
 
 #define DEFAULT_SWITCH_POWER        true
 #define DEFAULT_LIGHT_POWER         true
@@ -27,7 +26,3 @@ void app_driver_init(void);
 int app_driver_set_state(bool state);
 bool app_driver_get_state(void);
 float app_get_current_temperature();
-
-//--------RED LED----------//
-esp_err_t app_driver_set_gpio(const char *name, bool state);
-//--------RED LED----------//

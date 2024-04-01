@@ -15,12 +15,4 @@ menu "Example Configuration"
             This is an output GPIO that will be connected to a relay or other driver circuit in most cases.
             If the power changes, this GPIO output level will also change.
 
-
-    #--------- Configure GPIO 2 as red led output ---------------#        
-    config EXAMPLE_OUTPUT_GPIO_RED
-        int "Red GPIO"
-        default 2
-        help
-            Control digital RGB LEDs. Need to connect this GPIO to the red pin of the LED.
-
 endmenu

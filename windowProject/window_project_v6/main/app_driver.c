@@ -20,10 +20,9 @@
 #include "app_priv.h"
 
 
-////------------Rain Sensor---------------////
+////------------Rain Sensor Library---------------////
 #include "driver/gpio.h"
-
-////------------Rain Sensor---------------////
+////------------Rain Sensor Library---------------////
 
 /* This is the button that is used for toggling the power */
 #define BUTTON_GPIO          CONFIG_EXAMPLE_BOARD_BUTTON_GPIO
@@ -39,27 +38,18 @@
 #define WIFI_RESET_BUTTON_TIMEOUT       3
 #define FACTORY_RESET_BUTTON_TIMEOUT    10
 
-// ////------------Rain Sensor---------------////
-
+////------------Rain Sensor PIN declaration---------------////
 #define RAIN_SENSOR_PIN     22
+////------------Rain Sensor PIN declaration---------------////
 
-// #define ESP_INTR_FLAG_DEFAULT 0
-// ////------------Rain Sensor---------------////
-
-
-
-
-
-// //------------Rain Sensor---------------//
-// #define RAIN_SENSOR_ACTIVE_LEVEL  0
-// #define RAIN_SENSOR_PIN 22
-// //------------Rain Sensor---------------//
 
 static bool g_power_state = DEFAULT_SWITCH_POWER;
 
-//------------Rain Sensor---------------//
+//------------Rain Sensor Variables declaration---------------//
 static bool rain_sensor_state = DEFAULT_RAIN_SENSOR;
-//------------Rain Sensor---------------//
+static bool rain_notification_flag=false;
+static int rain_notification_counter=0;
+//------------Rain Sensor Variables declaration---------------//
 
 
 // static float g_temperature = DEFAULT_TEMPERATURE;
@@ -85,44 +75,47 @@ static TimerHandle_t sensor_timer;
 // }
 
 
-//------------Rain Sensor---------------//
+//------------Rain Sensor Update---------------//
 
 static void app_rain_sensor_update(TimerHandle_t handle)
 {
     rain_sensor_state = (bool) gpio_get_level(RAIN_SENSOR_PIN);
+
+    //----rain notification flag------//
+    if(rain_sensor_state==true)
+    {
+        rain_notification_counter+=1;//increase count
+        if(rain_notification_counter>=5 && rain_notification_flag==false)
+        {
+            esp_rmaker_raise_alert("Its raininig!");
+            rain_notification_flag=true;
+        }
+    }
+    else //if rain_sensor_state is false means no rain reset variables
+    {
+        rain_notification_flag=false;
+        rain_notification_counter=0;
+
+    }
+    //----rain notification flag------//
+
     esp_rmaker_param_update_and_report(
                 esp_rmaker_device_get_param_by_type(rain_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
                 esp_rmaker_float(rain_sensor_state));
 }
-//------------Rain Sensor---------------//
+//------------Rain Sensor Update---------------//
 
-//------------Rain Sensor---------------//
+//------------Rain Sensor Return State---------------//
 bool app_get_current_rain_sensor()
 {
-    // bool rain_sensor_input = (bool) gpio_get_level(RAIN_SENSOR_PIN);
-    // return g_temperature;
-    return rain_sensor_state;//temp line to be changed
+    return rain_sensor_state;
 }
-//------------Rain Sensor---------------//
-
-
-
-// //------------Rain Sensor---------------//
-// static void rain_sensor_event(void *arg)
-// {
-//     bool new_rain_sensor_state = !rain_sensor_state;
-//     app_driver_set_state(new_rain_sensor_state);
-//     esp_rmaker_param_update_and_report(
-//                 esp_rmaker_device_get_param_by_type(rain_sensor_device, ESP_RMAKER_PARAM_POWER),
-//                 esp_rmaker_bool(new_rain_sensor_state));
-// }
-// //------------Rain Sensor---------------//
+//------------Rain Sensor Return State---------------//
 
 
 
 
-
-//------------Rain Sensor---------------//
+//------------Rain Sensor Timer init---------------//
 
 esp_err_t app_sensor_init(void)
 {
@@ -136,21 +129,9 @@ esp_err_t app_sensor_init(void)
     return ESP_FAIL;
 }
 
-//------------Rain Sensor---------------//
+//------------Rain Sensor Timer init---------------//
 
 
-
-// esp_err_t app_sensor_init(void)
-// {
-//     g_temperature = DEFAULT_TEMPERATURE;
-//     sensor_timer = xTimerCreate("app_sensor_update_tm", (REPORTING_PERIOD * 1000) / portTICK_PERIOD_MS,
-//                             pdTRUE, NULL, app_sensor_update);
-//     if (sensor_timer) {
-//         xTimerStart(sensor_timer, 0);
-//         return ESP_OK;
-//     }
-//     return ESP_FAIL;
-// }
 
 static void app_indicator_set(bool state)
 {
@@ -223,19 +204,6 @@ int IRAM_ATTR app_driver_set_state(bool state)
     }
     return ESP_OK;
 }
-
-
-// //------------Rain Sensor---------------//
-
-// int IRAM_ATTR app_driver_set_state_rain_sensor(bool state)
-// {
-//     if(rain_sensor_state != state) {
-//         rain_sensor_state = state;
-//         set_power_state(rain_sensor_state);
-//     }
-//     return ESP_OK;
-// }
-// //------------Rain Sensor---------------//
 
 bool app_driver_get_state(void)
 {

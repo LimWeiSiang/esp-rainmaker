@@ -52,13 +52,16 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
         if (strcmp(device_name, "Switch") == 0) {
             app_driver_set_state(val.val.b);
         }
-    } else if (strcmp(param_name, ESP_RMAKER_DEF_BRIGHTNESS_NAME) == 0) {
-        ESP_LOGI(TAG, "Received value = %d for %s - %s",
-                val.val.i, device_name, param_name);
-    } else if (strcmp(param_name, ESP_RMAKER_DEF_SPEED_NAME) == 0) {
-        ESP_LOGI(TAG, "Received value = %d for %s - %s",
-                val.val.i, device_name, param_name);
-    } else {
+    }
+    // else if (strcmp(param_name, ESP_RMAKER_DEF_BRIGHTNESS_NAME) == 0) {
+    //     ESP_LOGI(TAG, "Received value = %d for %s - %s",
+    //             val.val.i, device_name, param_name);
+    // } 
+    // else if (strcmp(param_name, ESP_RMAKER_DEF_SPEED_NAME) == 0) {
+    //     ESP_LOGI(TAG, "Received value = %d for %s - %s",
+    //             val.val.i, device_name, param_name);
+    // } 
+    else {
         /* Silently ignoring invalid params */
         return ESP_OK;
     }

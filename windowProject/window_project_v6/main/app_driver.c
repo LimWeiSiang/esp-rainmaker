@@ -85,9 +85,9 @@ static void app_rain_sensor_update(TimerHandle_t handle)
     if(rain_sensor_state==true)
     {
         rain_notification_counter+=1;//increase count
-        if(rain_notification_counter>=5 && rain_notification_flag==false)
+        if(rain_notification_counter>=3 && rain_notification_flag==false)
         {
-            esp_rmaker_raise_alert("Its raininig!");
+            esp_rmaker_raise_alert("🌧 Its Raininig!!! 🌧");
             rain_notification_flag=true;
         }
     }
@@ -168,7 +168,7 @@ void app_driver_init()
     button_handle_t btn_handle = iot_button_create(BUTTON_GPIO, BUTTON_ACTIVE_LEVEL);
     if (btn_handle) {
         /* Register a callback for a button tap (short press) event */
-        // iot_button_set_evt_cb(btn_handle, BUTTON_CB_TAP, push_btn_cb, NULL);
+        iot_button_set_evt_cb(btn_handle, BUTTON_CB_TAP, push_btn_cb, NULL);
         /* Register Wi-Fi reset and factory reset functionality on same button */
         app_reset_button_register(btn_handle, WIFI_RESET_BUTTON_TIMEOUT, FACTORY_RESET_BUTTON_TIMEOUT);
     }

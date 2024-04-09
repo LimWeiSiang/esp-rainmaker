@@ -24,11 +24,23 @@
 //------------Rain Sensor---------------//
 
 
+//------------Limit Switch---------------//
+#define DEFAULT_LIMIT_SWITCH false
+//------------Limit Switch---------------//
+
+
 extern esp_rmaker_device_t *switch_device;
 // extern esp_rmaker_device_t *light__device;
 // extern esp_rmaker_device_t *fan_device;
 // extern esp_rmaker_device_t *temp_sensor_device;
+
+//------------Rain Sensor---------------//
 extern esp_rmaker_device_t *rain_sensor_device;
+//------------Rain Sensor---------------//
+
+//------------Limit Switch---------------//
+extern esp_rmaker_device_t *limit_switch_device;
+//------------Limit Switch---------------//
 
 
 void app_driver_init(void);

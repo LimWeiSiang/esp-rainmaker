@@ -34,8 +34,14 @@ esp_rmaker_device_t *switch_device;
 // esp_rmaker_device_t *light_device;
 // esp_rmaker_device_t *fan_device;
 // esp_rmaker_device_t *temp_sensor_device;
+
+////------------Rain Sensor---------------////
 esp_rmaker_device_t *rain_sensor_device;
-// esp_rmaker_device_t *rain_sensor_device_test;
+////------------Rain Sensor---------------////
+
+////------------Limit Switch---------------////
+esp_rmaker_device_t *limit_switch_device;
+////------------Limit Switch---------------////
 
 /* Callback to handle commands received from the RainMaker cloud */
 static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
@@ -129,12 +135,19 @@ void app_main()
     // temp_sensor_device = esp_rmaker_temp_sensor_device_create("Temperature Sensor", NULL, app_get_current_temperature());
     // esp_rmaker_node_add_device(node, temp_sensor_device);
 
-    //-----------Create Rain Sensor Device--------------//
+    //-----------Create Rain Sensor Device On App--------------//
     rain_sensor_device = esp_rmaker_temp_sensor_device_create("Rain Sensor", NULL, app_get_current_rain_sensor());
     ESP_LOGE(TAG, "Create Rain Sensor Device!!!!!");
     // rain_sensor_device = esp_rmaker_temp_sensor_device_create("Rain Sensor", NULL, true);
     esp_rmaker_node_add_device(node, rain_sensor_device);
-    //-----------Create Rain Sensor Device--------------//
+    //-----------Create Rain Sensor Device On App--------------//
+
+
+    //-----------Create Limit Switch Device On App--------------//
+    limit_switch_device = esp_rmaker_temp_sensor_device_create("Limit Switch Device", NULL, true);
+    ESP_LOGE(TAG, "Create Limit Switch Device!!!!!");
+    esp_rmaker_node_add_device(node, limit_switch_device);
+    //-----------Create Limit Switch Device On App--------------//
 
     /* Enable OTA */
     esp_rmaker_ota_enable_default();

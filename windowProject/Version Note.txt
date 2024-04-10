@@ -1,0 +1,2 @@
+v6 is working with limit switch on rain maker with push and release events
+v7 is trying to incoportate servo somewhere inside

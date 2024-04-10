@@ -57,7 +57,7 @@
 //-----------Limit Switch PIN Declaration End--------------//
 
 //-----------Servo Switch PIN Declaration Start--------------//
-#define Servo_SWITCH_PIN     12 // does nothing for now
+#define Servo_SWITCH_PIN     18 // does nothing for now
 //-----------Servo Switch PIN Declaration End--------------//
 
 
@@ -138,6 +138,7 @@ static inline uint32_t angle_to_compare(int angle)
 
 static void servo_movement(int angle)
 {
+    
     ESP_LOGI(TAG, "Create timer and operator");
     mcpwm_timer_handle_t timer = NULL;
     mcpwm_timer_config_t timer_config = {
@@ -171,8 +172,8 @@ static void servo_movement(int angle)
     };
     ESP_ERROR_CHECK(mcpwm_new_generator(oper, &generator_config, &generator));
 
-    // set the initial compare value, so that the servo will spin to the center position
-    ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, angle_to_compare(0)));
+    // // set the initial compare value, so that the servo will spin to the center position
+    // ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, angle_to_compare(0)));
 
     ESP_LOGI(TAG, "Set generator action on timer and compare event");
     // go high on counter empty
@@ -186,12 +187,16 @@ static void servo_movement(int angle)
     ESP_ERROR_CHECK(mcpwm_timer_enable(timer));
     ESP_ERROR_CHECK(mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP));
 
-    ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, angle_to_compare(90)));
-    vTaskDelay(pdMS_TO_TICKS(2000));
+    ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, angle_to_compare(angle)));
+    vTaskDelay(pdMS_TO_TICKS(3000));
 
-        ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, angle_to_compare(-90)));
-    vTaskDelay(pdMS_TO_TICKS(2000));
 
+    //remove generator comparator operator and timer if not will have error after a few cycles
+    ESP_ERROR_CHECK(mcpwm_del_generator(generator));
+    ESP_ERROR_CHECK(mcpwm_del_comparator(comparator));
+    ESP_ERROR_CHECK(mcpwm_del_operator(oper));
+    ESP_ERROR_CHECK(mcpwm_timer_disable(timer));
+    ESP_ERROR_CHECK(mcpwm_del_timer(timer));
 }
 
 
@@ -225,9 +230,8 @@ static void app_indicator_set(bool state)
 //-----------Limit Switch Events Start-------------//
 static void limit_switch_press_event(void *arg)
 {
-    limit_switch_state=true;
+    limit_switch_state=false;
     // if possible use a interupt for the motor here//
-
 
     esp_rmaker_param_update_and_report(
                 esp_rmaker_device_get_param_by_type(limit_switch_device, ESP_RMAKER_PARAM_TEMPERATURE),
@@ -237,7 +241,7 @@ static void limit_switch_press_event(void *arg)
 
 static void limit_switch_release_event(void *arg)
 {
-    limit_switch_state=false;
+    limit_switch_state=true;
     esp_rmaker_param_update_and_report(
                 esp_rmaker_device_get_param_by_type(limit_switch_device, ESP_RMAKER_PARAM_TEMPERATURE),
                 esp_rmaker_float(limit_switch_state)); //esp_rmaker_param: New param value type not same as the existing one. if change to bool
@@ -251,22 +255,37 @@ static void limit_switch_release_event(void *arg)
 static void servo_switch_event(void *arg)
 {
     bool new_servo_switch_state = !servo_switch_state;
-    // servo_switch_state=true;
-    servo_check_move(new_servo_switch_state);
+
+    // servo_check_move(new_servo_switch_state);
+
+    app_driver_set_servo_switch_state(new_servo_switch_state);
         
 
     esp_rmaker_param_update_and_report(
                 esp_rmaker_device_get_param_by_type(servo_switch_device, ESP_RMAKER_PARAM_POWER),
                 esp_rmaker_bool(servo_switch_state));
 }
+
+
 //-----------Servo Switch Event End-------------//
 
 
 //-----------Servo Switch Check Move Servo Start-------------//
 void servo_check_move(bool servo_switch_state)
 {
-    esp_rmaker_raise_alert("Closing Window!!!!"); //----send notification-----//
-    servo_movement(0); //temp
+    if(servo_switch_state==true)//close
+    {
+        esp_rmaker_raise_alert("Closing Window!!!!"); //----send notification-----//
+        servo_angle=-90;
+        servo_movement(servo_angle);
+    }
+    else //servo_switch_state= false means open
+    {
+        esp_rmaker_raise_alert("Opening Window!!!!"); //----send notification-----//
+        servo_angle=90;
+        servo_movement(servo_angle);
+    }
+    
 }
 //-----------Servo Switch Check Move Servo End-------------//
 
@@ -340,19 +359,6 @@ esp_err_t app_sensor_init(void)
 //------------Rain Sensor Timer init---------------//
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 static void app_indicator_init(void)
 {
     ws2812_led_init();
@@ -420,7 +426,7 @@ void app_driver_init()
     //-----------Servo Switch --------------//
     button_handle_t servo_btn_handle = iot_button_create(Servo_SWITCH_PIN, BUTTON_ACTIVE_LEVEL);
     /* Register a callback for a button tap (short press) event */
-    iot_button_set_evt_cb(servo_btn_handle, BUTTON_CB_TAP, servo_switch_event, NULL);
+    iot_button_set_evt_cb(servo_btn_handle, BUTTON_CB_PUSH, servo_switch_event, NULL);
     //-----------Servo Switch --------------//
 
 
@@ -437,17 +443,22 @@ int IRAM_ATTR app_driver_set_state(bool state)
 }
 
 
-// //-----------Servo Switch State Start --------------//
-// int IRAM_ATTR app_driver_set_servo_switch_state(bool state)
-// {
-//     if(servo_switch_state != state) {
-//         servo_switch_state = state;
-//         set_power_state(servo_switch_state);
-//     }
-//     return ESP_OK;
-// }
+//-----------Servo Switch State Start --------------//
+int IRAM_ATTR app_driver_set_servo_switch_state(bool state)
+{
+    if(servo_switch_state != state) {
+        servo_switch_state = state;
+        servo_check_move(servo_switch_state);
+    }
+    else
+    {
+        servo_check_move(state);
+        servo_switch_state=!state;
+    }
+    return ESP_OK;
+}
 
-// //-----------Servo Switch State End --------------//
+//-----------Servo Switch State End --------------//
 
 bool app_driver_get_state(void)
 {

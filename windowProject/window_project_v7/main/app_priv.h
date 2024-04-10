@@ -50,6 +50,9 @@ extern esp_rmaker_device_t *limit_switch_device;
 extern esp_rmaker_device_t *servo_switch_device;
 //------------Servo Switch---------------//
 
+// //-----------Servo Movement init-------------//
+// void servo_init(void);
+// //-----------Servo Movement init-------------//
 
 void app_driver_init(void);
 int app_driver_set_state(bool state);
@@ -64,7 +67,14 @@ bool app_get_current_rain_sensor();
 bool app_get_current_limit_switch();
 //------------Limit Switch---------------//
 
+
+
+
+
 //-----------Servo Switch Check Move Servo-------------//
 static void servo_switch_event(void *arg);
 void servo_check_move(bool servo_switch_state);
+
+int app_driver_set_servo_switch_state(bool state);
 //-----------Servo Switch Check Move Servo-------------//
+

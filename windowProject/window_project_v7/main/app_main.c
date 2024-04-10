@@ -29,6 +29,9 @@
 ////------------Rain Sensor---------------////
 
 
+// //--------Debouncing Rain Maker Buttons Start--------//
+// static int debounce_time=5;
+// //--------Debouncing Rain Maker Buttons End--------//
 
 
 static const char *TAG = "app_main";
@@ -103,13 +106,21 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
     return ESP_OK;
 }
 
+
+
+
+
 void app_main()
 {
     /* Initialize Application specific hardware drivers and
      * set initial state.
      */
+    
     app_driver_init();
+    
     app_driver_set_state(DEFAULT_SWITCH_POWER);
+    
+    // servo_init();
 
     /* Initialize NVS. */
     esp_err_t err = nvs_flash_init();

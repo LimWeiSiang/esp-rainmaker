@@ -19,10 +19,14 @@
 #include <ws2812_led.h>
 #include "app_priv.h"
 
-
 ////------------Rain Sensor Library---------------////
 #include "driver/gpio.h"
 ////------------Rain Sensor Library---------------////
+
+
+
+
+
 
 /* This is the button that is used for toggling the power */
 #define BUTTON_GPIO          CONFIG_EXAMPLE_BOARD_BUTTON_GPIO
@@ -65,6 +69,8 @@ static bool limit_switch_state = DEFAULT_LIMIT_SWITCH;
 //-----------Limit Switch Variables declaration--------------//
 
 
+
+
 // static float g_temperature = DEFAULT_TEMPERATURE;
 static TimerHandle_t sensor_timer;
 
@@ -88,6 +94,17 @@ static TimerHandle_t sensor_timer;
 // }
 
 //-----------Limit Switch -------------//
+
+
+
+
+
+
+
+
+
+
+
 
 static void app_indicator_set(bool state)
 {
@@ -155,6 +172,7 @@ static void app_rain_sensor_update(TimerHandle_t handle)
         {
             esp_rmaker_raise_alert("🌧 Its Raininig!!! 🌧"); //----send notification-----//
             rain_notification_flag=true;
+
         }
     }
     else //if rain_sensor_state is false means no rain reset variables
@@ -201,6 +219,16 @@ esp_err_t app_sensor_init(void)
 
 
 
+
+
+
+
+
+
+
+
+
+
 static void app_indicator_init(void)
 {
     ws2812_led_init();
@@ -224,6 +252,7 @@ static void set_power_state(bool target)
 
 void app_driver_init()
 {
+    
     button_handle_t btn_handle = iot_button_create(BUTTON_GPIO, BUTTON_ACTIVE_LEVEL);
     if (btn_handle) {
         /* Register a callback for a button tap (short press) event */
@@ -261,6 +290,10 @@ void app_driver_init()
     //-----Two seperate events one for when limit switch is depressed another for release-----//
     iot_button_set_evt_cb(limit_switch_handle, BUTTON_CB_PUSH, limit_swith_press_event, NULL);
     iot_button_set_evt_cb(limit_switch_handle, BUTTON_CB_RELEASE, limit_swith_release_event, NULL);
+
+    
+
+
     //-----------Limit Switch --------------//
 
 }
@@ -280,23 +313,4 @@ bool app_driver_get_state(void)
 }
 
 
-
-
-// static void push_btn_cb(void *arg)
-// {
-//     bool new_state = !g_power_state;
-//     app_driver_set_state(new_state);
-//     esp_rmaker_param_update_and_report(
-//                 esp_rmaker_device_get_param_by_type(switch_device, ESP_RMAKER_PARAM_POWER),
-//                 esp_rmaker_bool(new_state));
-// }
-
-
-// static void fridgeDoorOpenEvent(void *arg)
-// {
-//     fridgeDoorState = false;
-//     esp_rmaker_param_update_and_report(
-//             esp_rmaker_device_get_param_by_type(fridgeState, ESP_RMAKER_PARAM_TEMPERATURE),
-//             esp_rmaker_float(fridgeDoorState));
-// }
 

@@ -46,6 +46,13 @@ esp_rmaker_device_t *rain_sensor_device;
 esp_rmaker_device_t *limit_switch_device;
 ////------------Limit Switch---------------////
 
+
+//------------servo switch------------//
+
+esp_rmaker_device_t *servo_switch_device;
+//------------servo switch------------//
+
+
 /* Callback to handle commands received from the RainMaker cloud */
 static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
             const esp_rmaker_param_val_t val, void *priv_data, esp_rmaker_write_ctx_t *ctx)
@@ -61,6 +68,15 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
         if (strcmp(device_name, "Switch") == 0) {
             app_driver_set_state(val.val.b);
         }
+
+
+        //-------------Servo Switch Start-------------//
+        else if (strcmp(device_name, "Servo Switch") == 0) {
+            servo_check_move(val.val.b);
+        }
+        //-------------Servo Switch Start-------------//
+
+
     }
     // else if (strcmp(param_name, ESP_RMAKER_DEF_BRIGHTNESS_NAME) == 0) {
     //     ESP_LOGI(TAG, "Received value = %d for %s - %s",
@@ -70,6 +86,15 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
     //     ESP_LOGI(TAG, "Received value = %d for %s - %s",
     //             val.val.i, device_name, param_name);
     // } 
+
+    // //-------------Servo Switch Start-------------//
+    // else if (strcmp(device_name, "servo_switch_device") == 0) 
+    // {
+    //     servo_switch_event(val.val.b);
+    // } 
+    // //-------------Servo Switch End-------------//
+
+
     else {
         /* Silently ignoring invalid params */
         return ESP_OK;
@@ -147,10 +172,20 @@ void app_main()
 
 
     //-----------Create Limit Switch Device On App--------------//
-    limit_switch_device = esp_rmaker_temp_sensor_device_create("Limit Switch Device", NULL, true);
+    limit_switch_device = esp_rmaker_temp_sensor_device_create("Limit Switch Device", NULL, app_get_current_limit_switch());
     ESP_LOGE(TAG, "Create Limit Switch Device!!!!!");
     esp_rmaker_node_add_device(node, limit_switch_device);
     //-----------Create Limit Switch Device On App--------------//
+
+
+    //-----------Create Servo Switch Device On App--------------//
+    servo_switch_device = esp_rmaker_switch_device_create("Servo Switch", NULL, false);
+    esp_rmaker_device_add_cb(servo_switch_device, write_cb, NULL);
+    esp_rmaker_node_add_device(node, servo_switch_device);
+    //-----------Create Servo Switch Device On App--------------//
+
+
+
 
     /* Enable OTA */
     esp_rmaker_ota_enable_default();

@@ -19,17 +19,17 @@
 #include <ws2812_led.h>
 #include "app_priv.h"
 
-////------------Rain Sensor Library---------------////
+////------------Rain Sensor Library Start---------------////
 #include "driver/gpio.h"
-////------------Rain Sensor Library---------------////
+////------------Rain Sensor Library End---------------////
 
 
 
-//------------Servo Library---------------//
+//------------Servo Library Start---------------//
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "driver/mcpwm_prelude.h"
-//------------Servo Library---------------//
+//------------Servo Library End---------------//
 
 
 /* This is the button that is used for toggling the power */
@@ -46,20 +46,24 @@
 #define WIFI_RESET_BUTTON_TIMEOUT       3
 #define FACTORY_RESET_BUTTON_TIMEOUT    10
 
-////------------Rain Sensor PIN Declaration---------------////
+////------------Rain Sensor PIN Declaration Start---------------////
 #define RAIN_SENSOR_PIN     22
-////------------Rain Sensor PIN Declaration---------------////
+////------------Rain Sensor PIN Declaration End---------------////
 
 
 
-//-----------Limit Switch PIN Declaration--------------//
+//-----------Limit Switch PIN Declaration Start--------------//
 #define LIMIT_SWITCH_PIN     15
-//-----------Limit Switch PIN Declaration--------------//
+//-----------Limit Switch PIN Declaration End--------------//
+
+//-----------Servo Switch PIN Declaration Start--------------//
+#define Servo_SWITCH_PIN     12 // does nothing for now
+//-----------Servo Switch PIN Declaration End--------------//
 
 
 
 
-//------------Servo Declaration---------------//
+//------------Servo Declaration Start---------------//
 #define SERVO_MIN_PULSEWIDTH_US 500  // Minimum pulse width in microsecond
 #define SERVO_MAX_PULSEWIDTH_US 2500  // Maximum pulse width in microsecond
 #define SERVO_MIN_DEGREE        -90   // Minimum angle
@@ -71,7 +75,8 @@
 
 
 static const char *TAG = "servo";
-//------------Servo Declaration---------------//
+static int servo_angle = -90;
+//------------Servo Declaration End---------------//
 
 
 
@@ -79,16 +84,20 @@ static const char *TAG = "servo";
 
 static bool g_power_state = DEFAULT_SWITCH_POWER;
 
-//------------Rain Sensor Variables declaration---------------//
+//------------Rain Sensor Variables declaration Start---------------//
 static bool rain_sensor_state = DEFAULT_RAIN_SENSOR;
 static bool rain_notification_flag=false;
 static int rain_notification_counter=0;
-//------------Rain Sensor Variables declaration---------------//
+//------------Rain Sensor Variables declaration End---------------//
 
 
-//-----------Limit Switch Variables declaration--------------//
+//-----------Limit Switch Variables declaration Start--------------//
 static bool limit_switch_state = DEFAULT_LIMIT_SWITCH;
-//-----------Limit Switch Variables declaration--------------//
+//-----------Limit Switch Variables declaration End--------------//
+
+//-----------Servo Switch Variables declaration Start--------------//
+static bool servo_switch_state = DEFAULT_SERVO_SWITCH;
+//-----------Servo Switch Variables declaration End--------------//
 
 
 
@@ -115,18 +124,17 @@ static TimerHandle_t sensor_timer;
 //     return g_temperature;
 // }
 
-//-----------Limit Switch -------------//
 
 
 
 
-//---------------servo meethods-----------//
 
-static inline uint32_t example_angle_to_compare(int angle)
+//---------------Servo Methods Start-----------//
+
+static inline uint32_t angle_to_compare(int angle)
 {
     return (angle - SERVO_MIN_DEGREE) * (SERVO_MAX_PULSEWIDTH_US - SERVO_MIN_PULSEWIDTH_US) / (SERVO_MAX_DEGREE - SERVO_MIN_DEGREE) + SERVO_MIN_PULSEWIDTH_US;
 }
-
 
 static void servo_movement(int angle)
 {
@@ -164,7 +172,7 @@ static void servo_movement(int angle)
     ESP_ERROR_CHECK(mcpwm_new_generator(oper, &generator_config, &generator));
 
     // set the initial compare value, so that the servo will spin to the center position
-    ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, example_angle_to_compare(0)));
+    ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, angle_to_compare(0)));
 
     ESP_LOGI(TAG, "Set generator action on timer and compare event");
     // go high on counter empty
@@ -178,18 +186,16 @@ static void servo_movement(int angle)
     ESP_ERROR_CHECK(mcpwm_timer_enable(timer));
     ESP_ERROR_CHECK(mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP));
 
-    ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, example_angle_to_compare(90)));
+    ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, angle_to_compare(90)));
     vTaskDelay(pdMS_TO_TICKS(2000));
 
-        ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, example_angle_to_compare(-90)));
+        ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, angle_to_compare(-90)));
     vTaskDelay(pdMS_TO_TICKS(2000));
 
 }
 
 
-//---------------servo meethods-----------//
-
-
+//---------------Servo Methods End-----------//
 
 
 static void app_indicator_set(bool state)
@@ -216,9 +222,8 @@ static void app_indicator_set(bool state)
 //     return ESP_OK;
 // }
 
-
-
-static void limit_swith_press_event(void *arg)
+//-----------Limit Switch Events Start-------------//
+static void limit_switch_press_event(void *arg)
 {
     limit_switch_state=true;
     // if possible use a interupt for the motor here//
@@ -230,27 +235,49 @@ static void limit_swith_press_event(void *arg)
 }
 
 
-static void limit_swith_release_event(void *arg)
+static void limit_switch_release_event(void *arg)
 {
     limit_switch_state=false;
     esp_rmaker_param_update_and_report(
                 esp_rmaker_device_get_param_by_type(limit_switch_device, ESP_RMAKER_PARAM_TEMPERATURE),
                 esp_rmaker_float(limit_switch_state)); //esp_rmaker_param: New param value type not same as the existing one. if change to bool
 }
+//-----------Limit Switch Events End-------------//
 
 
 
-//-----------Limit Switch -------------//
+
+//-----------Servo Switch Event Start-------------//
+static void servo_switch_event(void *arg)
+{
+    bool new_servo_switch_state = !servo_switch_state;
+    // servo_switch_state=true;
+    servo_check_move(new_servo_switch_state);
+        
+
+    esp_rmaker_param_update_and_report(
+                esp_rmaker_device_get_param_by_type(servo_switch_device, ESP_RMAKER_PARAM_POWER),
+                esp_rmaker_bool(servo_switch_state));
+}
+//-----------Servo Switch Event End-------------//
 
 
+//-----------Servo Switch Check Move Servo Start-------------//
+void servo_check_move(bool servo_switch_state)
+{
+    esp_rmaker_raise_alert("Closing Window!!!!"); //----send notification-----//
+    servo_movement(0); //temp
+}
+//-----------Servo Switch Check Move Servo End-------------//
 
-//------------Rain Sensor Update---------------//
+
+//------------Rain Sensor Update Start---------------//
 
 static void app_rain_sensor_update(TimerHandle_t handle)
 {
     rain_sensor_state = (bool) gpio_get_level(RAIN_SENSOR_PIN);
 
-    //----rain notification flag------//
+    //----rain notification flag Start------//
     if(rain_sensor_state==true)
     {
         rain_notification_counter+=1;//increase count
@@ -259,7 +286,7 @@ static void app_rain_sensor_update(TimerHandle_t handle)
             esp_rmaker_raise_alert("🌧 Its Raininig!!! 🌧"); //----send notification-----//
             rain_notification_flag=true;
 
-            servo_movement(0);
+            // servo_movement(0);//temp
 
         }
     }
@@ -269,20 +296,29 @@ static void app_rain_sensor_update(TimerHandle_t handle)
         rain_notification_counter=0;
 
     }
-    //----rain notification flag------//
+    //----rain notification flag End------//
 
     esp_rmaker_param_update_and_report(
                 esp_rmaker_device_get_param_by_type(rain_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
                 esp_rmaker_float(rain_sensor_state)); //esp_rmaker_param: New param value type not same as the existing one. if change to bool
 }
-//------------Rain Sensor Update---------------//
+//------------Rain Sensor Update End---------------//
 
-//------------Rain Sensor Return State---------------//
+//------------Rain Sensor Return State Start---------------//
 bool app_get_current_rain_sensor()
 {
     return rain_sensor_state;
 }
-//------------Rain Sensor Return State---------------//
+//------------Rain Sensor Return State End---------------//
+
+
+
+//------------Limit Switch Return State Start---------------//
+bool app_get_current_limit_switch()
+{
+    return limit_switch_state;
+}
+//------------Limit Switch Return State End---------------//
 
 
 
@@ -376,13 +412,18 @@ void app_driver_init()
 
     button_handle_t limit_switch_handle = iot_button_create(LIMIT_SWITCH_PIN, BUTTON_ACTIVE_LEVEL);
     //-----Two seperate events one for when limit switch is depressed another for release-----//
-    iot_button_set_evt_cb(limit_switch_handle, BUTTON_CB_PUSH, limit_swith_press_event, NULL);
-    iot_button_set_evt_cb(limit_switch_handle, BUTTON_CB_RELEASE, limit_swith_release_event, NULL);
-
-    
-
-
+    iot_button_set_evt_cb(limit_switch_handle, BUTTON_CB_PUSH, limit_switch_press_event, NULL);
+    iot_button_set_evt_cb(limit_switch_handle, BUTTON_CB_RELEASE, limit_switch_release_event, NULL);
     //-----------Limit Switch --------------//
+
+
+    //-----------Servo Switch --------------//
+    button_handle_t servo_btn_handle = iot_button_create(Servo_SWITCH_PIN, BUTTON_ACTIVE_LEVEL);
+    /* Register a callback for a button tap (short press) event */
+    iot_button_set_evt_cb(servo_btn_handle, BUTTON_CB_TAP, servo_switch_event, NULL);
+    //-----------Servo Switch --------------//
+
+
 
 }
 
@@ -394,6 +435,19 @@ int IRAM_ATTR app_driver_set_state(bool state)
     }
     return ESP_OK;
 }
+
+
+// //-----------Servo Switch State Start --------------//
+// int IRAM_ATTR app_driver_set_servo_switch_state(bool state)
+// {
+//     if(servo_switch_state != state) {
+//         servo_switch_state = state;
+//         set_power_state(servo_switch_state);
+//     }
+//     return ESP_OK;
+// }
+
+// //-----------Servo Switch State End --------------//
 
 bool app_driver_get_state(void)
 {

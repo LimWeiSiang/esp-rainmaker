@@ -28,6 +28,10 @@
 #define DEFAULT_LIMIT_SWITCH false
 //------------Limit Switch---------------//
 
+//------------Servo Switch---------------//
+#define DEFAULT_SERVO_SWITCH false
+//------------Servo Switch---------------//
+
 
 extern esp_rmaker_device_t *switch_device;
 // extern esp_rmaker_device_t *light__device;
@@ -42,9 +46,25 @@ extern esp_rmaker_device_t *rain_sensor_device;
 extern esp_rmaker_device_t *limit_switch_device;
 //------------Limit Switch---------------//
 
+//------------Servo Switch---------------//
+extern esp_rmaker_device_t *servo_switch_device;
+//------------Servo Switch---------------//
+
 
 void app_driver_init(void);
 int app_driver_set_state(bool state);
 bool app_driver_get_state(void);
 // float app_get_current_temperature();
+
+//------------Rain Sensor---------------//
 bool app_get_current_rain_sensor();
+//------------Rain Sensor---------------//
+
+//------------Limit Switch---------------//
+bool app_get_current_limit_switch();
+//------------Limit Switch---------------//
+
+//-----------Servo Switch Check Move Servo-------------//
+static void servo_switch_event(void *arg);
+void servo_check_move(bool servo_switch_state);
+//-----------Servo Switch Check Move Servo-------------//

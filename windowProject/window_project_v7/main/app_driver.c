@@ -74,7 +74,7 @@
 #define SERVO_TIMEBASE_PERIOD        20000    // 20000 ticks, 20ms
 
 
-static const char *TAG = "servo";
+// static const char *TAG = "servo";
 static int servo_angle = -30;
 //------------Servo Declaration End---------------//
 
@@ -139,7 +139,7 @@ static inline uint32_t angle_to_compare(int angle)
 static void servo_movement(int angle)
 {
     
-    ESP_LOGI(TAG, "Create timer and operator");
+    // ESP_LOGI(TAG, "Create timer and operator");
     mcpwm_timer_handle_t timer = NULL;
     mcpwm_timer_config_t timer_config = {
         .group_id = 0,
@@ -156,10 +156,10 @@ static void servo_movement(int angle)
     };
     ESP_ERROR_CHECK(mcpwm_new_operator(&operator_config, &oper));
 
-    ESP_LOGI(TAG, "Connect timer and operator");
+    // ESP_LOGI(TAG, "Connect timer and operator");
     ESP_ERROR_CHECK(mcpwm_operator_connect_timer(oper, timer));
 
-    ESP_LOGI(TAG, "Create comparator and generator from the operator");
+    // ESP_LOGI(TAG, "Create comparator and generator from the operator");
     mcpwm_cmpr_handle_t comparator = NULL;
     mcpwm_comparator_config_t comparator_config = {
         .flags.update_cmp_on_tez = true,
@@ -175,7 +175,7 @@ static void servo_movement(int angle)
     // // set the initial compare value, so that the servo will spin to the center position
     // ESP_ERROR_CHECK(mcpwm_comparator_set_compare_value(comparator, angle_to_compare(0)));
 
-    ESP_LOGI(TAG, "Set generator action on timer and compare event");
+    // ESP_LOGI(TAG, "Set generator action on timer and compare event");
     // go high on counter empty
     ESP_ERROR_CHECK(mcpwm_generator_set_action_on_timer_event(generator,
                                                               MCPWM_GEN_TIMER_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, MCPWM_TIMER_EVENT_EMPTY, MCPWM_GEN_ACTION_HIGH)));
@@ -183,7 +183,7 @@ static void servo_movement(int angle)
     ESP_ERROR_CHECK(mcpwm_generator_set_action_on_compare_event(generator,
                                                                 MCPWM_GEN_COMPARE_EVENT_ACTION(MCPWM_TIMER_DIRECTION_UP, comparator, MCPWM_GEN_ACTION_LOW)));
 
-    ESP_LOGI(TAG, "Enable and start timer");
+    // ESP_LOGI(TAG, "Enable and start timer");
     ESP_ERROR_CHECK(mcpwm_timer_enable(timer));
     ESP_ERROR_CHECK(mcpwm_timer_start_stop(timer, MCPWM_TIMER_START_NO_STOP));
 
@@ -267,12 +267,12 @@ static void servo_switch_event(void *arg)
     //         esp_rmaker_bool(new_servo_switch_state));
     // }
 
-    ESP_LOGI(TAG, "----servo_switch_state before is %d",servo_switch_state);
+    // ESP_LOGI(TAG, "----servo_switch_state before is %d",servo_switch_state);
     if(servo_check_move(!servo_switch_state)==true)
     {
         servo_switch_state=!servo_switch_state;
     }
-    ESP_LOGI(TAG, "====servo_switch_state after is %d",servo_switch_state);
+    // ESP_LOGI(TAG, "====servo_switch_state after is %d",servo_switch_state);
 
     esp_rmaker_param_update_and_report(
             esp_rmaker_device_get_param_by_type(servo_switch_device, ESP_RMAKER_PARAM_POWER),
@@ -287,18 +287,18 @@ static void servo_switch_event(void *arg)
 //-----------Servo Switch Check Move Servo Start-------------//
 bool servo_check_move(bool servo_switch_state)
 {
-    ESP_LOGI(TAG, "Limit Switch is %d servo_switch_state is %d",limit_switch_state,servo_switch_state);
+    // ESP_LOGI(TAG, "Limit Switch is %d servo_switch_state is %d",limit_switch_state,servo_switch_state);
     if(servo_switch_state==true && limit_switch_state==false)//opened windown trying to close
     {
         esp_rmaker_raise_alert("Closing Window!!!!"); //----send notification-----//
-        servo_angle=-30;
+        servo_angle=5;
         servo_movement(servo_angle);
         return true;
     }
     else if(servo_switch_state==false)//servo_switch_state= false means closed windown trying to open
     {
         esp_rmaker_raise_alert("Opening Window!!!!"); //----send notification-----//
-        servo_angle=5;
+        servo_angle=-30;
         servo_movement(servo_angle);
         return true;
     }
@@ -327,10 +327,10 @@ static void app_rain_sensor_update(TimerHandle_t handle)
             esp_rmaker_raise_alert("🌧 Its Raininig!!! 🌧"); //----send notification-----//
             rain_notification_flag=true;
 
-            servo_angle=-30;
-            servo_movement(servo_angle);
             servo_switch_state=true;
             esp_rmaker_raise_alert("Auto Closing Window"); 
+            servo_check_move(true);//---- force close window unless limit switch is pressed checked by other function----///
+            
         }
     }
     else //if rain_sensor_state is false means no rain reset variables

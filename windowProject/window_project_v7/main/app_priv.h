@@ -73,8 +73,8 @@ bool app_get_current_limit_switch();
 
 //-----------Servo Switch Check Move Servo-------------//
 static void servo_switch_event(void *arg);
-void servo_check_move(bool servo_switch_state);
+bool servo_check_move(bool servo_switch_state);
 
-int app_driver_set_servo_switch_state(bool state);
+// int app_driver_set_servo_switch_state(bool state);
 //-----------Servo Switch Check Move Servo-------------//
 

@@ -68,16 +68,15 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
     if (strcmp(param_name, ESP_RMAKER_DEF_POWER_NAME) == 0) {
         ESP_LOGI(TAG, "Received value = %s for %s - %s",
                 val.val.b? "true" : "false", device_name, param_name);
-        if (strcmp(device_name, "Switch") == 0) {
+        if (strcmp(device_name, "Test Connection Switch") == 0) {
             app_driver_set_state(val.val.b);
         }
-
 
         //-------------Servo Switch Start-------------//
         else if (strcmp(device_name, "Servo Switch") == 0) {
             servo_check_move(val.val.b);
         }
-        //-------------Servo Switch Start-------------//
+        //-------------Servo Switch End-------------//
 
 
     }
@@ -148,7 +147,7 @@ void app_main()
     }
 
     /* Create a Switch device and add the relevant parameters to it */
-    switch_device = esp_rmaker_switch_device_create("Switch", NULL, DEFAULT_SWITCH_POWER);
+    switch_device = esp_rmaker_switch_device_create("Test Connection Switch", NULL, DEFAULT_SWITCH_POWER);
     esp_rmaker_device_add_cb(switch_device, write_cb, NULL);
     esp_rmaker_node_add_device(node, switch_device);
 

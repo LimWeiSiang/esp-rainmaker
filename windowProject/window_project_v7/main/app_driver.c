@@ -66,8 +66,8 @@
 //------------Servo Declaration Start---------------//
 #define SERVO_MIN_PULSEWIDTH_US 500  // Minimum pulse width in microsecond
 #define SERVO_MAX_PULSEWIDTH_US 2500  // Maximum pulse width in microsecond
-#define SERVO_MIN_DEGREE        -90   // Minimum angle
-#define SERVO_MAX_DEGREE        90    // Maximum angle
+#define SERVO_MIN_DEGREE        -80   // Minimum angle
+#define SERVO_MAX_DEGREE        10    // Maximum angle
 
 #define SERVO_PULSE_GPIO             0        // GPIO connects to the PWM signal line
 #define SERVO_TIMEBASE_RESOLUTION_HZ 1000000  // 1MHz, 1us per tick
@@ -75,7 +75,7 @@
 
 
 static const char *TAG = "servo";
-static int servo_angle = -90;
+static int servo_angle = -30;
 //------------Servo Declaration End---------------//
 
 
@@ -254,16 +254,30 @@ static void limit_switch_release_event(void *arg)
 //-----------Servo Switch Event Start-------------//
 static void servo_switch_event(void *arg)
 {
-    bool new_servo_switch_state = !servo_switch_state;
+    // if(app_driver_set_servo_switch_state(!servo_switch_state)==ESP_FAIL)
+    // {
+    //     esp_rmaker_raise_alert("Smt Failed"); //----send notification-----//
+    // }
+    // else
+    // {
+    // bool new_servo_switch_state = !servo_switch_state;
+    // app_driver_set_servo_switch_state(new_servo_switch_state);
+    // esp_rmaker_param_update_and_report(
+    //         esp_rmaker_device_get_param_by_type(servo_switch_device, ESP_RMAKER_PARAM_POWER),
+    //         esp_rmaker_bool(new_servo_switch_state));
+    // }
 
-    // servo_check_move(new_servo_switch_state);
-
-    app_driver_set_servo_switch_state(new_servo_switch_state);
-        
+    ESP_LOGI(TAG, "----servo_switch_state before is %d",servo_switch_state);
+    if(servo_check_move(!servo_switch_state)==true)
+    {
+        servo_switch_state=!servo_switch_state;
+    }
+    ESP_LOGI(TAG, "====servo_switch_state after is %d",servo_switch_state);
 
     esp_rmaker_param_update_and_report(
-                esp_rmaker_device_get_param_by_type(servo_switch_device, ESP_RMAKER_PARAM_POWER),
-                esp_rmaker_bool(servo_switch_state));
+            esp_rmaker_device_get_param_by_type(servo_switch_device, ESP_RMAKER_PARAM_POWER),
+            esp_rmaker_bool(servo_switch_state));
+
 }
 
 
@@ -271,19 +285,27 @@ static void servo_switch_event(void *arg)
 
 
 //-----------Servo Switch Check Move Servo Start-------------//
-void servo_check_move(bool servo_switch_state)
+bool servo_check_move(bool servo_switch_state)
 {
-    if(servo_switch_state==true)//close
+    ESP_LOGI(TAG, "Limit Switch is %d servo_switch_state is %d",limit_switch_state,servo_switch_state);
+    if(servo_switch_state==true && limit_switch_state==false)//opened windown trying to close
     {
         esp_rmaker_raise_alert("Closing Window!!!!"); //----send notification-----//
-        servo_angle=-90;
+        servo_angle=-30;
         servo_movement(servo_angle);
+        return true;
     }
-    else //servo_switch_state= false means open
+    else if(servo_switch_state==false)//servo_switch_state= false means closed windown trying to open
     {
         esp_rmaker_raise_alert("Opening Window!!!!"); //----send notification-----//
-        servo_angle=90;
+        servo_angle=5;
         servo_movement(servo_angle);
+        return true;
+    }
+    else
+    {
+        esp_rmaker_raise_alert("Error!!!!!!"); //----send notification-----//
+        return false;
     }
     
 }
@@ -305,8 +327,10 @@ static void app_rain_sensor_update(TimerHandle_t handle)
             esp_rmaker_raise_alert("🌧 Its Raininig!!! 🌧"); //----send notification-----//
             rain_notification_flag=true;
 
-            // servo_movement(0);//temp
-
+            servo_angle=-30;
+            servo_movement(servo_angle);
+            servo_switch_state=true;
+            esp_rmaker_raise_alert("Auto Closing Window"); 
         }
     }
     else //if rain_sensor_state is false means no rain reset variables
@@ -443,20 +467,27 @@ int IRAM_ATTR app_driver_set_state(bool state)
 }
 
 
-//-----------Servo Switch State Start --------------//
-int IRAM_ATTR app_driver_set_servo_switch_state(bool state)
-{
-    if(servo_switch_state != state) {
-        servo_switch_state = state;
-        servo_check_move(servo_switch_state);
-    }
-    else
-    {
-        servo_check_move(state);
-        servo_switch_state=!state;
-    }
-    return ESP_OK;
-}
+// //-----------Servo Switch State Start --------------//
+// int IRAM_ATTR app_driver_set_servo_switch_state(bool state)
+// {
+//     if(servo_switch_state != state) {
+//         servo_switch_state = state;
+//         if(servo_check_move(servo_switch_state))
+//         {
+//             return ESP_OK;
+//         }
+//         else
+//         {
+//             return ESP_FAIL;
+//         }
+//     }
+//     // else
+//     // {
+//     //     servo_check_move(state);
+//     //     // servo_switch_state=!state;
+//     // }
+//     return ESP_OK;
+// }
 
 //-----------Servo Switch State End --------------//
 

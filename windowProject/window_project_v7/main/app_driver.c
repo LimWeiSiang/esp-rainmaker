@@ -304,7 +304,7 @@ bool servo_check_move(bool servo_switch_state)
     }
     else
     {
-        esp_rmaker_raise_alert("Error!!!!!!"); //----send notification-----//
+        esp_rmaker_raise_alert("Not Closing! Limit Switch is Pressed!"); //----send notification-----//
         return false;
     }
     
